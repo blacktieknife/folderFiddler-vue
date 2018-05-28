@@ -1,0 +1,19 @@
+#dir-list li{
+    list-style-type: none;
+}
+/* hide scroll bars on body */
+body::-webkit-scrollbar {
+    display: none;
+}
+
+.is-underlined {
+    background-color:rgba(255, 142, 101, 0.07)
+
+}
+
+a.no_selection {
+    -webkit-user-select: none; /* webkit (safari, chrome) browsers */
+    -moz-user-select: none; /* mozilla browsers */
+    -khtml-user-select: none; /* webkit (konqueror) browsers */
+    -ms-user-select: none; /* IE10+ */
+}
