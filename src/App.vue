@@ -71,20 +71,80 @@
        </ul>
         <div class="column">
           <div class="columns is-multiline">
-            <ul class="column is-full" :style="{borderLeft:'1.3px solid grey',height:folderShowHeight+'px', overflow:'auto'}">
-              <li v-for="(item) in selectedFolderContent" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;cursor:pointer;padding:10px;border-bottom:1px solid lightgrey;" :title="item.dir" :key="item.dir">
-                <i :class="item.icon" style="color:grey"></i>
+            <div class="panel column is-full is-paddingless is-marginless" :style="{borderLeft:'1.3px solid grey',height:folderShowHeight+'px', overflow:'auto'}">
+              <a v-for="(item) in selectedFolderContent" class="panel-block shownFile" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;cursor:pointer;padding:10px;border-bottom:1px solid lightgrey;" @click="showSelectedFile(item.dir)" :title="item.dir" :key="item.dir">
+                <i :class="item.icon" style="color:grey;padding-right:10px;"></i>
                 {{item.dir}}
-              </li>
-            </ul>
+              </a>
+            </div>
             <ul class="column is-full" :style="{borderLeft:'1.3px solid grey',height:controlsHeight+'px', overflow:'hidden',borderTop:'1.3px solid grey', borderTopStyle:'double'}">
-              <li style="">
-                <a class="button is-small" @click="()=>{if(selectedFolderContent.length>0)sortFunction();}">Sort</a>
-                <a class="button is-primary is-small">Normal</a>
-                <a class="button is-link is-small">Normal</a>
-                <a class="button is-info is-small">Normal</a>
-                <input style="display:inline-block; width:40%" class="input is-small" type="text" placeholder="Text input">
+              <transition
+              mode="out-in"
+              enter-active-class="animated fadeIn"
+              leave-active-class="animated fadeOut"
+              >
+                <li v-if="selectedFolderContent.length > 0" style="margin-bottom:10px;">
+                  <a class="button is-small" :disable="loading" @click="()=>{if(selectedFolderContent.length>0)sortFunction();}">Sort Selected Directory</a>
+                  <span style="padding:5px;">
+                    <label for="othercheck" class="checkbox">
+                      <input type="checkbox" id="othercheck" class="subfolderChecks" name="othercheck" :value="otherCheckText">
+                      <input type='text' id="otherCheckText" :style="{width:((otherCheckText.length+1)*6.3)+'px', border:'none', borderBottom:'1.3px solid lightgrey', cursor:'text'}" v-model="otherCheckText">
+                    </label>
+                  </span>
+                  <span v-if="subFolderOption_1">
+                    <span style="padding:5px;">
+                      <label for="othercheck2" class="checkbox">
+                        <input type="checkbox" id="othercheck2" class="subfolderChecks" name="othercheck2" :value="otherCheckText2">
+                        <input type='text' id="otherCheckText2" :style="{width:((otherCheckText2.length+1)*6.3)+'px', border:'none', borderBottom:'1.3px solid lightgrey', cursor:'text'}" v-model="otherCheckText2">
+                      </label>
+                    </span>
+                  </span>
+                  <span v-else>
+                    <a class="button is-small is-rounded" :disable="loading" @click="()=>{subFolderOption_1 = true;lastSubFolder=true;}">+</a>
+                  </span>
+                  <span v-if="subFolderOption_2">
+                    <span style="padding:5px;">
+                      <label for="othercheck3" class="checkbox">
+                        <input type="checkbox" id="othercheck3" class="subfolderChecks" name="othercheck3" :value="otherCheckText3">
+                        <input type='text' id="otherCheckText3" :style="{width:((otherCheckText3.length+1)*6.3)+'px', border:'none', borderBottom:'1.3px solid lightgrey', cursor:'text'}" v-model="otherCheckText3">
+                      </label>
+                    </span>
+                  </span>
+                  <span v-else-if="lastSubFolder">
+                    <a class="button is-small is-rounded" :disable="loading" @click="subFolderOption_2 = true">+</a>
+                  </span>
+                </li>
+              </transition>
+              <!-- <transition
+              mode="out-in"
+              enter-active-class="animated fadeIn"
+              leave-active-class="animated fadeOut"
+              >
+              <template v-if="selectedFolderContent.length > 0">
+                <li v-if="sub_folder_1" style="margin-bottom:10px;">
+                  <a class="button is-small" :disable="loading" @click="()=>{if(selectedFolderContent.length>0)sortFunction();}">Sort Selected Directory</a>
+                  <span style="padding:5px;">
+                    <label for="othercheck" class="checkbox">
+                      <input type="checkbox" id="othercheck" class="subfolderChecks" name="othercheck" :value="otherCheckText">
+                      <input type='text' id="otherCheckText" :style="{width:((otherCheckText.length+1)*6.3)+'px', border:'none', borderBottom:'1.3px solid lightgrey', cursor:'text'}" v-model="otherCheckText">
+                    </label>
+                  </span>
+                </li>
+                <li v-else>
+                  <a class="button is-small" :disable="loading">+</a>
+                </li>
+                </template>
+              </transition> -->
+              <transition
+              mode="out-in"
+              enter-active-class="animated fadeIn"
+              leave-active-class="animated fadeOut"
+              >
+              <li v-if='selectedFile' style="maring-top:9px;">
+                  <a class="button is-small" :disable="loading">Create folder&nbsp;<small style="font-size:8px;"> with selected file</small></a>
+                  <input style="display:inline-block; width:40%" class="input is-small" type="text" placeholder="Text input" :disable="loading" v-model="suggestedFolderName">
               </li>
+               </transition>
             </ul>
           </div>
         </div>
@@ -99,8 +159,8 @@
       <div class="modal-content columns">
         <div class="column is-full is-centered">
           <div class="has-text-centered has-text-light">
-            <h1>Sorting..</h1>
-            <small>This may take a few minutes depending on how many files we are sorting.</small>
+            <h1>Sorting</h1>
+            <small id="loadingText">This may take a few minutes depending on how many files we are sorting.</small>
           </div>
         <button class="button is-primary is-loading is-fullwidth"></button>
         </div>
@@ -112,7 +172,8 @@
 <script>
 import {ipcRenderer} from 'electron';
 import Drives from './components/Drives';
-import { setTimeout } from 'timers';
+import addIcon from './helpers/addIcon.js';
+import { setTimeout, setInterval, clearInterval } from 'timers';
 const drivelist = require('drivelist');
 const fs = require('fs');
 
@@ -120,10 +181,18 @@ export default {
   name: 'test',
   data () {
     return {
+      otherCheckText:"Shipping",
+      otherCheckText2:"Other",
+      otherCheckText3:"Other",
+      subFolderOption_1:false,
+      subFolderOption_2:false,
+      lastSubFolder:false,
        selectedView:"all",
        currentDir: 'Drives',
        currentDirContent:[],
        selectedFolder:"",
+       selectedFile:"",
+       loading:false,
        selectedFolderContent:[],
        height:"0",
     }
@@ -140,7 +209,17 @@ export default {
         console.log("New X and Y ", x, y)
         this.height = y.toString();
         this.appWidth = x.toString();
-    }, //(\d{2,})(.+)\s*(so|po|spi)?\s*(\$\d+)?\.(\S{1,})
+    },
+    addDots(el){
+     const interval = setInterval(()=>{
+       console.log("DOTS IS RUNNING");
+         if(this.loading){
+           el.innerText += '.';
+         } else {
+           clearInterval(interval);
+         }
+       },1000)      
+    },
     sortFunction(){
      const findSORegEx = /^(\d{4,})([-\.\d]+)*\s*(.*)\s*(so|spi|po)\s*([\$\d]+|.+)*\.(\w+)$/i;
      const seen = [];
@@ -185,7 +264,7 @@ export default {
              fileExtension:fileExtension.trim()
            }
          } else {
-           console.log("ERROR COULD NOT VALIDATE FILENAME IN SORT FUNCTION");
+           alert("ERROR COULD NOT VALIDATE FILENAME IN SORT FUNCTION");
          }
        }
      })
@@ -204,19 +283,21 @@ export default {
             if(fullNameParse){
               if(fullNameParse[4]){
                 if(fullNameParse[4].toLowerCase() == 'so'){
-                  subFolder = '/SO';
+                  subFolder = '/Sales Order';
                 } else if(fullNameParse[4].toLowerCase() == 'po' || fullNameParse[4].toLowerCase() == 'spi'){
-                  subFolder = '/PRODUCTION';
+                  subFolder = '/Production';
                 } else if(fullNameParse[4].toLowerCase() == 'jpg' || fullNameParse[4].toLowerCase() == 'jpeg'){
-                   subFolder = '/ART';
+                   subFolder = '/Art';
+                } else if(item.dir.endsWith('.jpg') || item.dir.endsWith('.jpeg')){
+                  subFolder = '/Art';
                 }
               } else if(fullNameParse[6]){
                 if(fullNameParse[6].toLowerCase() == 'jpg' || fullNameParse[6].toLowerCase() == 'jpeg'){
-                  subFolder = "/ART";
+                  subFolder = "/Art";
                 } else if(fullNameParse[6].toLowerCase() == 'pdf'){
-                  subFolder = "/PRODUCTION";
+                  subFolder = "/Production";
                 } else if(fullNameParse[6].toLowerCase() == 'xlsx'){
-                  subFolder = "/SO";
+                  subFolder = "/Sales Order";
                 }
               }
             }
@@ -226,20 +307,32 @@ export default {
       }
       const modal = document.querySelector('#loadingModal');
       if(newFolderArray.length > 0) {
+        this.loading = true;
         modal.classList.add('is-active');
+        document.querySelector('#loadingText').innerHTML = 'Creating Folders';
+        this.addDots(document.querySelector('#loadingText'));
         this.batchNewDirectories(newFolderArray).then((foldersArr)=>{
           console.log("ALL DIRECTORYS MADE");
+          document.querySelector('#loadingText').innerHTML = 'Copying Files';
           if(copyArray.length > 0) {    
            return this.batchCopy(copyArray);
           }
         }).then(copies=>{
           console.log("ALL COPIES COMPLETE");
+          document.querySelector('#loadingText').innerHTML = 'Cleaning up old files';
           return this.batchRemove(copies);
         }).then(()=>{
           console.log("All old files successfully removed");
-          this.fetchDir(this.selectedFolder, true);
-          modal.classList.remove('is-active');
+          document.querySelector('#loadingText').innerHTML = 'Done';
+          setTimeout(()=>{
+            modal.classList.remove('is-active');
+            document.querySelector('#loadingText').innerHTML = 'Loading';
+            this.fetchDir(this.selectedFolder, true);
+            this.loading = false;
+          },1000)
         }).catch(err=>{
+           document.querySelector('#loadingText').innerHTML = 'Loading';
+          this.loading = false;
           console.log("ERROR IN CREATENEWDIRECTORY FUNCTION", err)
           modal.classList.remove('is-active');
           alert("Error in sorting of files. Please check directory");
@@ -267,7 +360,7 @@ export default {
                   resolve(arr);
               } 
             })
-          },2000) 
+          },5000) 
         })
       })
     },
@@ -285,37 +378,79 @@ export default {
     },
     batchNewDirectories(arr){
       return new Promise((resolve, reject)=>{
+        const subFolders = ['Art', 'Sales Order', 'Production'];
+        document.querySelectorAll('.subfolderChecks').forEach((val)=>{
+          if(val.checked){
+            subFolders.push(val.value)
+          }
+        })
+        console.log("SUBFOLDER ARRAY", subFolders);
         const promiseArray = arr.map((item,i)=>{
           return new Promise((res, rej)=>{
-          fs.mkdir(item, (err)=>{
-            if(err) reject(err);
-            fs.mkdir(item+'/ART', (err)=>{
+            fs.mkdir(item, (err)=>{
               if(err) reject(err);
-              fs.mkdir(item+'/SO', (err)=>{
-                if(err) reject(err);
-                fs.mkdir(item+'/PRODUCTION', (err)=>{
-                  if(err) reject(err);
-                  if(arr.length-1 == i){
-                    resolve(arr)
-                  }
-                })
+              subFolders.forEach((folder)=>{
+                fs.mkdir(item+'/'+folder, (err)=>{
+                    if(err) reject(err);
+                    if(arr.length-1 == i){
+                      resolve(arr)
+                    }
+                  })
               })
             })
-          })
           })
         })
 
       })
     },
+    showSelectedFile(selectedFile){
+      this.selectedFile = "";
+      const file = typeof(selectedFile) === "string" && selectedFile.length > 0 && this.selectedFolder.length > 0 ? this.selectedFolder+'/'+selectedFile : false;
+      if(file){
+        fs.stat(file, (err, stats)=>{
+          if(err) return alert(err.toString());
+          if(!stats.isDirectory()){
+            console.log("FILE IS NOT A DIRECTORY");
+            document.querySelectorAll(".shownFile").forEach((val)=>{
+              console.log("all .shownFIles value", val)
+              if(val.innerText.replace('  ', ' ').trim() == selectedFile.replace('  ', ' ').trim()){
+                console.log("THERE IS A MATCH", val)
+                val.classList.add('is-active');
+                val.style.borderLeft = '2.5px solid blue';
+                val.style.backgroundColor = 'rgba(0,255,0,0.3)';
+                this.selectedFile = selectedFile;
+              } else {
+               // console.log("NOT MATCH", val)
+                val.classList.remove('is-active');
+                val.style.borderLeft = '';
+                val.style.backgroundColor = '';
+              }
+            })
+          } else {
+            console.log("FILE IS A DIRECTORY");
+          }
+        })
+      } else {
+       this.selectedFile = "";
+       document.querySelectorAll(".shownFile").forEach((val)=>{
+         val.classList.remove('is-active')
+          val.style.borderLeft = '';
+          val.style.backgroundColor = '';
+       })
+      }
+    },
     showSelectedDir(dir){
+      this.showSelectedFile();
       const selectedDir = typeof(dir) === "string" && dir.trim().length > 0 && dir.trim().endsWith('\\') ? dir.trim() : this.currentDir+'/'+dir;
       this.fetchDir(selectedDir, true);
       console.log(selectedDir)
     },
     refresh(){
+      this.showSelectedFile();
       this.fetchDir(this.currentDir);
     },
     goBack(){
+      this.showSelectedFile();
       console.log(this.currentDir);
       if(this.currentDir !== 'Drives' && this.currentDir.length > 3){
         if(!this.currentDir.includes('/')) {
@@ -338,139 +473,32 @@ export default {
       }
     },
     fetchDir(dir, selectedFolder){
+     this.showSelectedFile();
       console.log("DIR Sent TO FETCH Dir ",dir);
-        fs.readdir(`${dir}`, (err, data)=>{
-          if(err){
-            if(err.message.includes("not a directory")){
-              console.log('NOT A DIRECTORY');
-              return false;
-            } else {
-              console.log("ERROR IN FETCH DIR FUNCTION",err.message)
-            }  
+      fs.readdir(`${dir}`, (err, data)=>{
+        if(err){
+          if(err.message.includes("not a directory")){
+            console.log('NOT A DIRECTORY');
+            return false;
           } else {
-            const extRegEx = /(\.[a-z0-9]*)$/
-            const dirContentArray = data.map((item)=>{
-              const match = item.match(extRegEx);
-              let customIcon;
-              if(match){
-                switch(match[0].toLowerCase()){
-                  case '.jpg':
-                    customIcon = 'fas fa-image';
-                    break;
-                  case '.jpeg':
-                    customIcon = 'fas fa-image';
-                    break;
-                  case '.gif':
-                    customIcon = 'fas fa-image';
-                    break;
-                  case '.tiff':
-                    customIcon = 'fas fa-image';
-                    break;
-                  case '.png':
-                    customIcon = 'fas fa-image';
-                    break;  
-                  case '.ps':
-                    customIcon = 'fas fa-image';
-                    break;         
-                  case '.json':
-                    customIcon = 'fab fa-js';
-                    break; 
-                  case '.js':
-                    customIcon = 'fab fa-js';
-                    break;
-                  case '.css':
-                    customIcon = 'fab fa-css3-alt';
-                    break;
-                  case '.html':
-                    customIcon = 'fab fa-html5';
-                    break; 
-                   case '.mp3':
-                    customIcon = 'fas fa-music';
-                    break; 
-                  case '.wav':
-                    customIcon = 'fas fa-music';
-                    break;
-                  case '.m4a':
-                    customIcon = 'fas fa-music';
-                    break; 
-                  case '.ape':
-                    customIcon = 'fas fa-music';
-                    break;    
-                  case '.flac':
-                    customIcon = 'fas fa-music';
-                    break;
-                  case '.acc':
-                    customIcon = 'fas fa-music';
-                    break; 
-                  case '.avi':
-                    customIcon = 'fas fa-video';
-                    break;
-                  case '.mkv':
-                    customIcon = 'fas fa-video';
-                    break;  
-                  case '.xvid':
-                    customIcon = 'fas fa-video';
-                    break;
-                  case '.mp4':
-                    customIcon = 'fas fa-video';
-                    break;
-                  case '.dvix':
-                    customIcon = 'fas fa-video';
-                    break; 
-                  case '.mpeg':
-                    customIcon = 'fas fa-video';
-                    break;
-                  case '.mpg':
-                    customIcon = 'fas fa-video';
-                    break;
-                  case '.exe':
-                    customIcon = 'fas fa-desktop';
-                    break;                             
-                  case '.zip':
-                    customIcon = 'fas fa-file-archive';
-                    break;
-                  case '.rar':
-                    customIcon = 'fas fa-file-archive';
-                    break;      
-                  case '.txt':
-                    customIcon = 'fas fa-file-alt';
-                    break;
-                  case '.log':
-                    customIcon = 'fas fa-file-alt';
-                    break; 
-                  case '.cfg':
-                    customIcon = 'fas fa-file-alt';
-                    break;
-                  case '.wd':
-                    customIcon = 'fas fa-file-alt';
-                    break;           
-                  case '.pdf':
-                    customIcon = 'fas fa-file-pdf';
-                    break;      
-                  default:
-                    customIcon = 'fas fa-file';
-                    break;  
-                }
-                return {dir:item, icon:customIcon};
-              } else {
-                return {dir:item, icon:'fas fa-folder'};
-              }
-              console.log("RETURN ARRAY OF THINGS", dirContentArray )
-            })
-            if(!selectedFolder){
-              this.currentDir = dir;
-              this.currentDirContent = dirContentArray;
-              this.selectedFolderContent = [];
-            } else {
-              this.selectedFolder = dir;
-              this.selectedFolderContent = dirContentArray;
-            }
+            console.log("ERROR IN FETCH DIR FUNCTION",err.message)
+          }  
+        } else {
+          const dirContentArray = addIcon(data);
+          if(!selectedFolder){
+            this.currentDir = dir;
+            this.currentDirContent = dirContentArray;
+            this.selectedFolderContent = [];
+          } else {
+            this.selectedFolder = dir;
+            this.selectedFolderContent = dirContentArray;
           }
-        });
-      
+        }
+      });
     },
     fetchDrives(){
       console.log("Fetch drives function Fired!")
+      this.showSelectedFile();
       drivelist.list((error, drives) => {
         if (error) {
           throw error;
@@ -490,6 +518,22 @@ export default {
     windowHeight:function(){
       return this.height;
     },
+    suggestedFolderName:function(){
+      const reggie = /^(\d{4,})([-\.\d]+)*\s*(.*)\s*(so|spi|po)\s*([\$\d]+|.+)*\.(\w+)$/i;
+       //index 0 = full matched string
+       //index 1 = order number
+       //index 2 = sub order number
+       //index 3 = job name
+       //index 4 = so , spi, or po
+       //index 5 = $ dollar amount
+       //index 6 = file extention
+       const match = this.selectedFile.match(reggie);
+      if(match){
+        return match[3].replace("  ", " ").trim()+" "+match[5].trim()+" "+match[1].trim();
+      } else {
+        return this.selectedFile.replace("  ", " ").trim();
+      }
+    },
     directoryHeight:function(){
       if(this.currentDir == 'Drives'){
         return this.height-72.59
@@ -498,10 +542,13 @@ export default {
       }
     },
     folderShowHeight:function(){
-      return this.height/1.4;
+      return this.height/1.6;
     },
     controlsHeight:function(){
       return this.height-this.folderShowHeight;
+    },
+    loadingText:function(){
+
     }
 
   },
