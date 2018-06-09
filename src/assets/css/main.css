@@ -5,15 +5,69 @@
 body::-webkit-scrollbar {
     display: none;
 }
+.shownFile{
+    border:none;
+}
+.shownFile.is-active {
+    border-left:4.5px solid #3273dc;
+    background-color:#484848 !important;
+}
+.directory.is-active{
+    background-color:#484848 !important;
+}
 
 .is-underlined {
     background-color:rgba(255, 142, 101, 0.07)
 
 }
 
+.lightHover:hover{
+    color: #888 !important;
+}
+
+.center_content{
+    display:flex;
+    align-items: center;
+    justify-content: center;
+    width:100%;
+}
+
+
 a.no_selection {
     -webkit-user-select: none; /* webkit (safari, chrome) browsers */
     -moz-user-select: none; /* mozilla browsers */
     -khtml-user-select: none; /* webkit (konqueror) browsers */
     -ms-user-select: none; /* IE10+ */
+}
+.no_selection {
+    -webkit-user-select: none; /* webkit (safari, chrome) browsers */
+    -moz-user-select: none; /* mozilla browsers */
+    -khtml-user-select: none; /* webkit (konqueror) browsers */
+    -ms-user-select: none; /* IE10+ */
+}
+/* width */
+::-webkit-scrollbar {
+    width: 10px;
+}
+::-webkit-scrollbar:hover {
+    cursor:pointer;
+}
+/* Track */
+::-webkit-scrollbar-track {
+    background: #4C4646; 
+}
+/* Track */
+::-webkit-scrollbar-track:hover {
+    cursor:pointer;
+}
+ 
+ 
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background: #888; 
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: #A0A0A0; 
 }

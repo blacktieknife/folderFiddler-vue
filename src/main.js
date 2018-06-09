@@ -16,10 +16,10 @@ const createWindow = async () => {
     width: 1020,
     height: 600,
     minHeight:350,
-    minWidth:780,
+    minWidth:800,
 
   });
-
+  
   // and load the index.html of the app.
   mainWindow.loadURL(`file://${__dirname}/main.html`);
 
@@ -42,8 +42,8 @@ const createWindow = async () => {
       height:280,
       maxWidth: 350, 
       maxHeight: 280,
-      minWidth:350,
-      minHeight:280
+      minWidth:770,
+      minHeight:300
     });
     unresponsiveEventWindow.loadURL(url.format({
       pathname: path.join(__dirname, 'src/unresponsiveApp.html'),
