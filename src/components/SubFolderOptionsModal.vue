@@ -3,7 +3,14 @@
             <div class="modal-background"></div>
             <div class="modal-card" style="max-width:75%">
                 <header class="modal-card-head">
-                <p class="modal-card-title">Modal title</p>
+                <p class="modal-card-title">
+                    <template v-if="process == 'autoSort'">
+                        Autosort Sub Folder Options
+                    </template>
+                    <template v-if="process == 'createFolder'">
+                        New Sub Folder Options
+                    </template>
+                </p>
                 <button class="delete" aria-label="close" @click="closeModal"></button>
                 </header>
                 <section class="modal-card-body has-background-dark">
@@ -12,15 +19,19 @@
                             <form id="autoSortFormChecks" style="">
                                 <a class="panel-block has-text-light autoSortFolderOption" v-for="subfolder in sortFolderOptions" :key="subfolder.name">
                                     <div class="columns is-full" style="width:100%">
-                                        <div class="column is-9">
+                                        <div class="column is-10" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                                             <label class="checkbox lightHover" title="Select to include this subfolder" style="padding:10px;">
                                                 <template v-if="subfolder.name == 'Art' || subfolder.name == 'Production' || subfolder.name == 'Sales Order'">
                                                     <input type="checkbox" :checked="subfolder.isChecked" disabled>
-                                                    {{subfolder.name}} <small style="color:grey;">(disabled on sort)</small>
+                                                        <span :title="subfolder.name">
+                                                             {{subfolder.name}} <small style="color:grey;">(disabled on sort)</small>
+                                                        </span>
                                                 </template>
                                                 <template v-else>
                                                     <input type="checkbox" :id="subfolder.name" :checked="subfolder.isChecked" @click="handleCheck">
-                                                    {{subfolder.name}}
+                                                        <span :title="subfolder.name">
+                                                            {{subfolder.name}}
+                                                        </span>
                                                 </template> 
                                             </label>
                                         </div>
@@ -47,11 +58,13 @@
                             <form id="createFolderFormChecks" style="" v-if="createFolderOptions.length > 0">
                                 <a class="panel-block has-text-light createFolderOption" v-for="subfolder in createFolderOptions" :key="subfolder.name">
                                     <div class="columns is-full" style="width:100%">
-                                        <div class="column is-9">
-                                            <label class="checkbox lightHover" title="Select to include this subfolder" style="padding:10px;">
+                                        <div class="column is-10" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                            <label class="checkbox lightHover" title="Select to include this subfolder" style="padding:10px">
                                                 <template>
                                                     <input type="checkbox" :id="subfolder.name" :checked="subfolder.isChecked" @click="handleCheck">
-                                                    {{subfolder.name}}
+                                                        <span :title="subfolder.name">
+                                                            {{subfolder.name}}
+                                                        </span>
                                                 </template> 
                                             </label>
                                         </div>
@@ -111,15 +124,28 @@ export default {
      },
      handleAddCreateFolderOption(e){
           e.preventDefault();
-         this.$store.dispatch("addCreateFolder", this.createFolderName);
-         this.createFolderName = '';
+          const folderName = this.createFolderName.trim();
+          const folderExists = this.createFolderOptions.find(el=>el.name.toLowerCase() == folderName.toLowerCase())
+          if(folderExists){
+              alert("This folder name already exists");
+              this.createFolderName = '';
+          } else {
+               this.$store.dispatch("addCreateFolder", this.createFolderName);
+                this.createFolderName = '';
+          }
      },
      handleAddSortFolderOption(e){
          e.preventDefault();
          const folderName = this.formFolderName.trim();
-         console.log("FOLDER NAME:",folderName);
-         this.$store.dispatch("addSortFolder", folderName);
-         this.formFolderName = '';
+         const folderExists = this.sortFolderOptions.find(el=>el.name.toLowerCase() == folderName.toLowerCase());
+         if(folderExists){
+             alert("this folder name already exists")
+             this.formFolderName = '';
+         } else {
+            console.log("FOLDER NAME:",folderName);
+            this.$store.dispatch("addSortFolder", folderName);
+            this.formFolderName = '';
+         }
      },
      handleRemoveSortFolder(e){
          console.log("REMOVE sortFolder TRIGGERD",e.target.attributes['removeId'].value)

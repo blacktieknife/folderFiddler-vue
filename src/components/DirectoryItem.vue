@@ -44,10 +44,9 @@ export default {
                     } else {
                         const revesedFileName = selectedFile.split("").reverse().join("");
                         const removeExt = revesedFileName.split(".",1).join("").split("").reverse().join("");
-                        console.log("Ett o remove",removeExt);
                         selected = selectedFile.replace(`.${removeExt}`, "").trim();
                     }
-                    this.$store.dispatch("updateSelectedFile", selected);
+                    this.$store.dispatch("updateSelectedFile", selectedFile);
                 } else {
                   console.log("Selected file is a directory. do Nothing.")  
                 }
@@ -56,7 +55,15 @@ export default {
         newSelectedDir(selectedFile){
             const newPath = this.directory.selectedDir+'\\'+selectedFile;
             console.log("DOBLUE CLICK VALUE", newPath);
-            this.$store.dispatch("updateSelectedDir", newPath)
+            fs.stat(newPath, (err, stats)=>{
+                if(err){
+                    console.log(err)
+                } else {
+                    if(stats.isDirectory()){
+                        this.$store.dispatch("updateSelectedDir", newPath);
+                    }
+                }
+            })
         }
     }
 }

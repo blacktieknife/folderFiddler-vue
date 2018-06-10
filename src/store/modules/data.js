@@ -5,6 +5,7 @@ const state = {
     currentDirConent:[],
     selectedDir:"",
     selectedFile:"",
+    isLoading:false,
     selectedDirContent:[],
     createFolderOptions:[],
     sortFolderOptions:[],
@@ -14,6 +15,10 @@ const state = {
 const mutations = {
   "UPDATE_CURRENT_DIR"(state, path){
       state.currentDir = path;
+  },
+  "UPDATE_ISLOADING"(state, loading){
+    //loading should be true of false
+    state.isLoading = loading;
   },
   "UPDATE_CURRENT_DIR_CONTENT"(state, dirArray){
     console.log("UPDATE CURRENT DIR MUTATION FIRED ", dirArray);
@@ -79,6 +84,9 @@ const actions = {
         } else {
             commit("UPDATE_SELECTED_FILE");
         }
+    },
+    updateLoading({commit}, loading){
+        commit("UPDATE_ISLOADING", loading)
     },
     fetchSortSubFolderOptions({commit}){
         try{
@@ -242,6 +250,9 @@ const getters = {
     },
     autoSortOptions(state){
         return state.sortFolderOptions;
+    },
+    isLoading(state){
+        return state.isLoading;
     }
 }
 

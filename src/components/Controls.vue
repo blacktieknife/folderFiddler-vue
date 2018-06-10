@@ -2,9 +2,9 @@
     <div>
         <li v-if="selectedDirContent.length > 0" :style="{marginBottom:'10px'}" class="center_item">
             <span>
-                <a class="button is-normal is-primary" :disable="loading" @click="console.log('Hello>')"><i class="fas fa-magic"></i>&nbsp;Auto Sort Directory</a>
+                <a class="button is-normal is-primary" :disable="loading" @click="handleSort"><i class="fas fa-magic"></i>&nbsp;Auto Sort Directory</a>
             </span>
-            <span>
+            <span style="margin-left:15px;">
                 <a class="button is-normal is-info" title="Subfolder Options" @click="showModal"><i class="fas fa-question-circle"></i></a>
             </span>
         </li>
@@ -64,6 +64,7 @@
 
 <script>
 import subFolderOptionsModal from "./SubFolderOptionsModal";
+import {ipcRenderer} from "electron";
 export default {
  data(){
      return{
@@ -99,6 +100,22 @@ export default {
      },
      handleCloseModal(){
          this.subFolderModal = false;
+     },
+     handleSort(){
+         const currentSelectedDir = this.selectedDir;
+         const currentSelectedDirContent = this.selectedDirContent;
+         const subFolders = this.$store.getters.autoSortOptions;
+         const activeSubfolders = [];
+         subFolders.forEach(val=>{
+             if(val.isChecked){
+                 activeSubfolders.push(val.name);
+             }
+         });
+         console.log("Original selected Dir",currentSelectedDirContent );
+         console.log("Active sort forlders",activeSubfolders);
+         if(currentSelectedDir.length > 3 && activeSubfolders.length >0){
+             ipcRenderer.send("autoSort", currentSelectedDirContent, activeSubfolders);
+         }
      }
  }
 }
