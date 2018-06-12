@@ -24,10 +24,10 @@ const createWindow = async () => {
   mainWindow.loadURL(`file://${__dirname}/main.html`);
 
   // Open the DevTools.
-  if (isDevMode) {
-    await installExtension(VUEJS_DEVTOOLS);
-    mainWindow.webContents.openDevTools();
-  }
+  // if (isDevMode) {
+  //   await installExtension(VUEJS_DEVTOOLS);
+  //   mainWindow.webContents.openDevTools();
+  // }
 
   //on did-finish load event listener
   mainWindow.webContents.on('did-finish-load', ()=>{
@@ -86,6 +86,7 @@ ipcMain.on("createNewFolder", (e, args)=>{
           }
         }
         if(subFolders.length > 0){
+          e.sender.send("updateLoading", "Creating Sub Folders");
           const promisesArray = subFolders.map(val=>{
             return new Promise((resolve, reject)=>{
               fs.mkdir(`${args.dir}\\${args.folderName}\\${val.name}`, (err)=>{
@@ -96,6 +97,7 @@ ipcMain.on("createNewFolder", (e, args)=>{
             Promise.all(promisesArray).then(vals=>{
               const seen = {};
               const tempCopyArray = [];
+              e.sender.send("updateLoading", "Copying Files");
               fs.readdir(`${args.dir}`, (err,data)=>{
                 if(!err){
                   data.forEach((dirName)=>{
@@ -115,6 +117,7 @@ ipcMain.on("createNewFolder", (e, args)=>{
                   })
                   const copyPromises = batchCopy(copyArray);
                   Promise.all(copyPromises).then(removeVal=>{
+                    e.sender.send("updateLoading", "Removing Old Files");
                     const batchRemoveArray = batchRemove(removeVal);
                     return Promise.all(batchRemoveArray)   
                   }).then(()=>{
@@ -128,6 +131,41 @@ ipcMain.on("createNewFolder", (e, args)=>{
                 }
               }) 
             })
+          } else {
+            const tempCopyArray = [];
+            e.sender.send("updateLoading", "Copying Files");
+            fs.readdir(`${args.dir}`, (err,data)=>{
+              if(!err){
+                data.forEach((dirName)=>{
+                  console.log("ARGS", args)
+                  const match = dirName.match(/^\d{3,}/);
+                  if(match){
+                    console.log("MATCH FOUD",match[0])
+                    console.log("FULL MATCH VS", match[0], args.file.match(/^\d{3,}/)[0])
+                    if(match[0] == args.file.match(/^\d{3,}/)[0]){
+                      tempCopyArray.push(dirName);
+                    }
+                  }
+                })
+                console.log("ALL COPY ARRAY", tempCopyArray);
+                const copyArray = tempCopyArray.map(val=>{
+                  return {read:`${args.dir}\\${val}`, write:`${args.dir}\\${args.folderName}\\${val}`}
+                })
+                const copyPromises = batchCopy(copyArray);
+                Promise.all(copyPromises).then(removeVal=>{
+                  e.sender.send("updateLoading", "Removing Old Files");
+                  const batchRemoveArray = batchRemove(removeVal);
+                  return Promise.all(batchRemoveArray)   
+                }).then(()=>{
+                  console.log("ALL DONE NOW>");
+                  return e.sender.send("updateLoading", false);
+                }).catch(err=>{
+                  console.error("Err in copy array", err)
+                })  
+              } else {
+                console.error("errrror", err)
+              }
+            }) 
           }
         } else {
           //include similar files there are no subfolders.
@@ -148,6 +186,7 @@ ipcMain.on("createNewFolder", (e, args)=>{
           }
         }
         if(subFolders.length > 0){
+          e.sender.send("updateLoading", "Creating Sub Folders");
           const subFolderPromises = subFolders.map((val)=>{
             return new Promise((resolve,reject)=>{
               fs.mkdir(`${args.dir}\\${args.folderName}\\${val.name}`, (err)=>{
@@ -156,6 +195,7 @@ ipcMain.on("createNewFolder", (e, args)=>{
             })
           })
           Promise.all(subFolderPromises).then((mainFolder)=>{
+            e.sender.send("updateLoading", "Copying File");
             const readLoc = `${args.dir}\\${args.file}`;
             const writeLoc = `${args.dir}\\${args.folderName}\\${args.file}`;
             const read = fs.createReadStream(readLoc);
@@ -165,6 +205,7 @@ ipcMain.on("createNewFolder", (e, args)=>{
               console.log("ERROR IN READ WRTIE PIPE IN MOVE FILE PORTION OF CREATE NEW FOLDER", err);
             })
             write.on("finish", ()=>{
+              e.sender.send("updateLoading", "Cleaing Old Files");
               fs.unlink(readLoc, (err)=>{
                 if(!err){
                   e.sender.send("updateLoading", false);
@@ -174,9 +215,11 @@ ipcMain.on("createNewFolder", (e, args)=>{
               })
             })
           }).catch(err=>{
+            e.sender.send("errorMsg", "Folder already exists");
             console.log("Subfolder Err", err)
           })
         } else {
+          e.sender.send("updateLoading", "Copying File");
           const readLoc = `${args.dir}\\${args.file}`;
           const writeLoc = `${args.dir}\\${args.folderName}\\${args.file}`;
           const read = fs.createReadStream(readLoc);
@@ -186,6 +229,7 @@ ipcMain.on("createNewFolder", (e, args)=>{
             console.log("ERROR IN READ WRTIE PIPE IN MOVE FILE PORTION OF CREATE NEW FOLDER", err);
           })
           write.on("finish", ()=>{
+            e.sender.send("updateLoading", "Cleaing Old Files");
             fs.unlink(readLoc, (err)=>{
               if(!err){
                 e.sender.send("updateLoading", false);
@@ -196,6 +240,7 @@ ipcMain.on("createNewFolder", (e, args)=>{
           })
         }
       } else {
+        e.sender.send("errorMsg", "Folder already exists");
         console.log(err)
       }
     })
@@ -203,19 +248,38 @@ ipcMain.on("createNewFolder", (e, args)=>{
     e.sender.send("updateLoading", "Creating Folders");
     fs.mkdir(`${args.dir}\\${args.folderName}`, (err)=>{
       if(!err){
-        args.subFolders.forEach(folder=>{
-          if(folder.isChecked){
-            fs.mkdir(`${args.dir}\\${args.folderName}\\${folder.name}`, (err)=>{
-              if(err){
-                console.error("ERROR in IPC RENDER",err);
-              } 
-            })
+        if(args.subFolders.length > 0){
+          const subFolders = [];
+          for(let folder of args.subFolders){
+            if(folder.isChecked){
+              subFolders.push(folder);
+            }
           }
-        })
+          if(subFolders.length>0){
+            subFolders.forEach((folder, i)=>{
+              fs.mkdir(`${args.dir}\\${args.folderName}\\${folder.name}`, (err)=>{
+                if(!err){
+                  if(subFolders.length-1 == i){
+                    e.sender.send("updateLoading", false);
+                  }
+                } else {
+                  console.error("Err in subfolder creation", err)
+                }
+              })
+            })
+          } else {
+            e.sender.send("updateLoading", false);
+          }
+           
       } else {
-        console.log(err)
+        console.log("Sub folders !! NOO!! length",args.subFolders)
+        e.sender.send("updateLoading", false);
       }
-      e.sender.send("updateLoading", false);
+      } else {
+        e.sender.send("updateLoading", false);
+        console.error(err)
+      }
+      
     })
   }
 })
@@ -247,6 +311,7 @@ app.on('activate', () => {
 async function autoSortDir(e,dirContent, subFolders){
      const findSORegEx = /^(\d{4,})([-\.\d]+)*\s*(.*)\s*(so|spi|po)\s*([\$\d]+|.+)*\.(\w+)$/i;
      const seen = [];
+     e.sender.send("errorMsg", "ERROR UPDATING NEW FOLDER");
      dirContent.forEach((val)=>{
        const match = val.dir.match(findSORegEx);
        //index 0 = full matched string
@@ -314,8 +379,7 @@ async function autoSortDir(e,dirContent, subFolders){
                 } else if(fullNameParse[4].toLowerCase() == 'jpg' || fullNameParse[4].toLowerCase() == 'jpeg'){
                    subFolder = '\\Art';
                 } 
-              }
-              if(fullNameParse[6]){
+              }else if(fullNameParse[6]){
                 if(fullNameParse[6].toLowerCase() == 'jpg' || fullNameParse[6].toLowerCase() == 'jpeg'){
                   subFolder = "\\Art";
                 } else if(fullNameParse[6].toLowerCase() == 'pdf'){
@@ -346,12 +410,15 @@ async function autoSortDir(e,dirContent, subFolders){
         console.log("ALL DONE");
         e.sender.send("updateLoading", false);
       }).catch(err=>{
+        e.sender.send("updateLoading", false);
+        e.sender.send("errorMsg", "ERROR UPDATING NEW FOLDER");
         console.error("Errror in auto sort", err);
       }) 
 }
 function batchCopy(arr){
   const promiseArray = arr.map((item,i)=>{
     return new Promise((resolve,reject)=>{
+
       const read = fs.createReadStream(item.read);
       const write = fs.createWriteStream(item.write);
         read.pipe(write);
@@ -361,7 +428,8 @@ function batchCopy(arr){
         write.on('finish', ()=>{
           resolve(item.read);
         })
-    })
+
+  })
   })
   return promiseArray;
 }
@@ -369,6 +437,7 @@ function batchCopy(arr){
 function batchRemove(arr){
   const promiseArray = arr.map((item,i)=>{
     return new Promise((resolve, reject)=>{
+
         try{
           fs.unlink(item, (error)=>{
             if(!error){
@@ -380,7 +449,8 @@ function batchRemove(arr){
         } catch(err){
           console.log("err caught in batch remove", err)
         }
-    })
+
+  })
   })
   return promiseArray;
 }
@@ -388,7 +458,7 @@ function batchRemove(arr){
 function makeDirectories(mainFolders, subFolders){
         const promiseArray = mainFolders.map((item,i)=>{
           return new Promise((res, rej)=>{
-            setTimeout(()=>{
+
               fs.mkdir(item, (err)=>{
                 if(err) rej(err);
                 subFolders.forEach((folder)=>{
@@ -398,7 +468,7 @@ function makeDirectories(mainFolders, subFolders){
                     })
                 })
               })
-            }, 2000)
+
           })
         })
         return promiseArray;

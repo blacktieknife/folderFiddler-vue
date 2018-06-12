@@ -65,6 +65,7 @@
 <script>
 import subFolderOptionsModal from "./SubFolderOptionsModal";
 import {ipcRenderer} from "electron";
+const fs = require('fs');
 export default {
  data(){
      return{
@@ -111,11 +112,30 @@ export default {
                  activeSubfolders.push(val.name);
              }
          });
+         let passCheck = true;
+         const folderOrderNumbers = [];
+         currentSelectedDirContent.forEach((val)=>{
+             const match = val.dir.match(/\d{3,}$/)
+             if(match){
+                folderOrderNumbers.push(match[0]);
+             }
+         })
+         for(let i=0; i<currentSelectedDirContent.length; i++){
+             const match = currentSelectedDirContent[i].dir.match(/^\d{3,}/);
+             if(match){
+                 if(folderOrderNumbers.includes(match[0])){
+                     passCheck = false;
+                    alert("This order number is being used by another folder "+match[0], "Error order number in-use");
+                    break;
+                 } 
+             }
+         }
+        if(currentSelectedDir.length > 3 && passCheck){
+            ipcRenderer.send("autoSort", currentSelectedDirContent, activeSubfolders);
+        } 
+         console.log("FOLDER ORDER NUMBERs", folderOrderNumbers)
          console.log("Original selected Dir",currentSelectedDirContent );
          console.log("Active sort forlders",activeSubfolders);
-         if(currentSelectedDir.length > 3 && activeSubfolders.length >0){
-             ipcRenderer.send("autoSort", currentSelectedDirContent, activeSubfolders);
-         }
      }
  }
 }

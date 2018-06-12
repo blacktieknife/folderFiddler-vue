@@ -23,6 +23,7 @@
         </ul>
     </div>
     <app-loading-modal></app-loading-modal>
+    <app-error></app-error>
   </div>
 </template>
 
@@ -36,6 +37,7 @@ import controlsFolder from './components/ControlsFolder';
 import addIcon from './helpers/addIcon.js';
 import { setTimeout, setInterval, clearInterval } from 'timers';
 import emptyControls from './components/EmptyControls.vue';
+import errorMessage from './components/ErrorMessage.vue';
 const drivelist = require('drivelist');
 const fs = require('fs');
 
@@ -77,6 +79,7 @@ export default {
          }
        },1000)      
     },
+
     // passSelectedDirContent(dirArr){
     //   console.log("array made it back to app ", dirArr);
     //   this.selectedDirContent = [];
@@ -386,7 +389,8 @@ export default {
     appControlsSort:controls,
     appControlsFolder:controlsFolder,
     appEmptyControls:emptyControls,
-    appLoadingModal:loadingModal
+    appLoadingModal:loadingModal,
+    appError:errorMessage
   },
   computed:{
     windowHeight:function(){

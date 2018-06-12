@@ -2,7 +2,7 @@
     <div>
         <div v-if="selectedDirContent.length">
             <p class="panel-heading" 
-                style="padding-top:10px;height:35.5px;font-size:12px;font-weight:bold;" 
+                style="padding-top:10px;height:35.6px;font-size:12px;font-weight:bold;" 
                 :fullDirPath="this.selectedDir"
                 >
                <span class="columns">

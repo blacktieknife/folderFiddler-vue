@@ -1,5 +1,5 @@
 <template>
-    <a class="panel-block has-text-light has-background-dark shownFile no_selection" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;cursor:pointer;padding:10px;border-bottom:1px solid #404040;" @dblclick="newSelectedDir(directory.dir)" @click="showSelectedFile(directory.dir)" :title="directory.dir">
+    <a class="panel-block has-text-light has-background-dark shownFile no_selection" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;cursor:pointer;padding:10px;border:none;border-bottom:1px solid #404040;" @dblclick="newSelectedDir(directory.dir)" @click="showSelectedFile(directory.dir)" :title="directory.dir">
         <i style="color:#A8A8A8;padding-right:10px;" :class="directory.icon"></i>
         {{directory.dir}}
     </a>
@@ -60,7 +60,17 @@ export default {
                     console.log(err)
                 } else {
                     if(stats.isDirectory()){
-                        this.$store.dispatch("updateSelectedDir", newPath);
+                        fs.readdir(newPath, (err,data)=>{
+                            if(!err){
+                                if(data.length > 0){
+                                    this.$store.dispatch("updateSelectedDir", newPath);
+                                } else {
+                                   console.log("SELECTED DIR IS EMPTY!~~~")     
+                                }
+                            } else {
+
+                            }
+                        })
                     }
                 }
             })

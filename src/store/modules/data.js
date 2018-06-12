@@ -5,6 +5,7 @@ const state = {
     currentDirConent:[],
     selectedDir:"",
     selectedFile:"",
+    errorMsg:false,
     isLoading:false,
     selectedDirContent:[],
     createFolderOptions:[],
@@ -43,6 +44,9 @@ const mutations = {
         state.sortFolderOptions.push(options);
       }
      console.log("STATE AFTER FOLDER OPTIONS UPDATE", state.sortFolderOptions)
+  },
+  "UPDATE_ERROR"(state, errorMsg){
+    state.errorMsg = errorMsg;
   },
   "UPDATE_CREATE_FOLDER_OPTIONS"(state, options){
       if(isArray(options)){
@@ -87,6 +91,9 @@ const actions = {
     },
     updateLoading({commit}, loading){
         commit("UPDATE_ISLOADING", loading)
+    },
+    updateError({commit}, errorMsg){
+        commit("UPDATE_ERROR", errorMsg);
     },
     fetchSortSubFolderOptions({commit}){
         try{
@@ -253,6 +260,9 @@ const getters = {
     },
     isLoading(state){
         return state.isLoading;
+    },
+    errorMsg(state){
+        return state.error;
     }
 }
 

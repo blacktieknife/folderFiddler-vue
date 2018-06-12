@@ -91,7 +91,7 @@ export default {
             //index 6 = file extention
             const match = name.match(reggie);
             if(match){
-                return match[3].replace(/\s{2,}/g, " ").trim()+" "+match[5].trim()+" "+match[1].trim();
+                return ((match[3] || "").trim()+" "+(match[5] || "").trim()+" "+(match[1] || "").trim()).replace(/\s{2,}/g, " ");
             } else {
                 const revesedFileName = name.split("").reverse().join("");
                 const removedExt = revesedFileName.split(".",1).join("").split("").reverse().join("")

@@ -4,6 +4,7 @@
             <span id='dir-list-title' class="column is-paddingless" :style="{
             display:'block', 
             maxWidth:'97%', 
+            color:'#64676f',
             whiteSpace:'nowrap', 
             overflow:'hidden', 
             textOverflow:'ellipsis', 
@@ -13,47 +14,41 @@
             :title="currentDir">{{this.currentDir}}
             </span>
         </p>
-        <transition
-            mode="out-in"
-            enter-active-class="animated flipInX"
-            :duration="{enter:'250', leave:'250'}"
-            leave-active-class="animated flipOutX"
-            >
-            <p class="panel-block is-paddingless is-marginless has-text-light columns" style="border:none;border-bottom:2.3px solid #333; padding-left:25px !important;">
-                <span id="dir-list-back" class="column is-paddingless" title="Back">
-                    <template v-if="currentDir !== 'Drives'">
-                    <i class="fas fa-chevron-circle-left" style="cursor:pointer;" @click="goBack"></i>
+        <p class="panel-block is-paddingless is-marginless has-text-light columns" style="border:none;border-bottom:2.3px solid #333; text-align:center; display:flex; justify-content: space-around;">
+            <span id="dir-list-back" class="column is-paddingless" title="Back">
+                <template v-if="currentDir !== 'Drives'">
+                <i class="fas fa-chevron-circle-left" style="cursor:pointer;" @click="goBack"></i>
+                </template>
+                <template v-else>
+                    <i class="fas fa-chevron-circle-left" style="cursor:not-allowed;color:rgba(96,96,96, 0.6)"></i>
+                </template>
+            </span>
+            <span id="dir-list-refresh" class="column is-paddingless" title="Refresh">
+                <i class="fas fa-sync-alt" style="cursor:pointer;" @click="refreshDrives"></i>
+            </span>
+            <span id="dir-list-fav" class="column is-paddingless">
+                <template v-if="selectedDir && currentDir !=='Drives'">
+                    <template v-if="containsFav">
+                        <i class="fas fa-star" style="cursor: pointer;" @click="removeFavorite" :title="`Remove Favorite ${selectedDir}`"></i>
                     </template>
                     <template v-else>
-                        <i class="fas fa-chevron-circle-left" style="cursor:not-allowed;color:rgba(96,96,96, 0.6)"></i>
+                            <i class="far fa-star" style="cursor: pointer;" @click="addFavorite" :title="`Favorite ${selectedDir}`"></i>
                     </template>
-                </span>
-                <span id="dir-list-refresh" class="column is-paddingless" title="Refresh">
-                    <i class="fas fa-sync-alt" style="cursor:pointer;" @click="refreshDrives"></i>
-                </span>
-                <span id="dir-list-fav" class="column is-paddingless">
-                    <template v-if="selectedDir && currentDir !=='Drives'">
-                        <template v-if="containsFav">
-                            <i class="fas fa-star" style="cursor: pointer;" @click="removeFavorite" :title="`Remove Favorite ${selectedDir}`"></i>
-                        </template>
-                        <template v-else>
-                             <i class="far fa-star" style="cursor: pointer;" @click="addFavorite" :title="`Favorite ${selectedDir}`"></i>
-                        </template>
-                    </template>
-                    <template v-else-if="selectedDir.length > 3">
-                        <template v-if="containsFav">
-                            <i class="fas fa-star" style="cursor: pointer;" @click="removeFavorite" :title="`Remove Favorite ${selectedDir}`"></i>
-                        </template>
-                        <template v-else>
-                             <i class="far fa-star" style="cursor: pointer;" @click="addFavorite" :title="`Favorite ${selectedDir}`"></i>
-                        </template>
+                </template>
+                <template v-else-if="selectedDir.length > 3">
+                    <template v-if="containsFav">
+                        <i class="fas fa-star" style="cursor: pointer;" @click="removeFavorite" :title="`Remove Favorite ${selectedDir}`"></i>
                     </template>
                     <template v-else>
-                        <i class="fas fa-star" style="cursor:not-allowed;color:rgba(96,96,96, 0.6)"></i>
+                            <i class="far fa-star" style="cursor: pointer;" @click="addFavorite" :title="`Favorite ${selectedDir}`"></i>
                     </template>
-                </span>
-            </p>   
-        </transition>
+                </template>
+                <template v-else>
+                    <i class="fas fa-star" style="cursor:not-allowed;color:rgba(96,96,96, 0.6)"></i>
+                </template>
+            </span>
+        </p>   
+
         <!-- <p class="panel-tabs">
             <a class="is-active">All</a>
             <a>Local</a>
