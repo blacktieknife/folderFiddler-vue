@@ -1,8 +1,8 @@
 {
   "name": "folder-fiddler-vue",
-  "productName": "folder-fiddler-vue",
-  "version": "1.0.0",
-  "description": "My Electron application description",
+  "productName": "LJI-folder-wizard",
+  "version": "2.0.0",
+  "description": "",
   "main": "src/main.js",
   "scripts": {
     "start": "electron-forge start",
@@ -30,7 +30,7 @@
         ]
       },
       "electronPackagerConfig": {
-        "packageManager": "yarn"
+        "packageManager": "npm"
       },
       "electronWinstallerConfig": {
         "name": "folder_fiddler_vue"
