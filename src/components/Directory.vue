@@ -80,6 +80,7 @@ export default {
         },
         isLoading(val){
             if(val == false){
+                this.$store.dispatch('updateSelectedDir', this.selectedDir);
                 this.refreshSelectedDir();
             }
         }

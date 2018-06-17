@@ -1,4 +1,8 @@
 import { isArray } from "util";
+import {ipcRenderer} from "electron";
+import addIcon from "../../helpers/addIcon.js";
+const fs = require('fs');
+const chokidar = require('chokidar');
 
 const state = {
     currentDir:"Drives",
@@ -66,7 +70,7 @@ const mutations = {
       console.log("UPDATED STATE AFTER UPDATE SELECTED FILE", state.selectedFile);
   }
 };
-
+let watcher;
 const actions = {
     updateCurrentDir({commit}, dirPath){
         commit("UPDATE_CURRENT_DIR", dirPath);
@@ -75,8 +79,43 @@ const actions = {
         console.log("UPDATE CURRENT DIR ACTION FIRED ", dirArray);
         commit("UPDATE_CURRENT_DIR_CONTENT", dirArray);
     },
-    updateSelectedDir({commit}, selectedDir){
+    updateSelectedDir({commit, getters, dispatch}, selectedDir){
         console.log("UPDATE SELECTED DIR ACITON FIRED ", selectedDir);
+        const currentSelectedDir = getters.selectedDir || selectedDir;
+        if(watcher){
+            watcher.close();
+            watcher = null;
+        } 
+        watcher = chokidar.watch(selectedDir,{ignored: /(^|[\/\\])\../, depth:0});
+        watcher.on('ready',()=>{
+          console.log(`Scan complete ready for changes`);
+          watcher.on('add', (path)=>{
+              console.log(`New file added here is the full path ${path}`);
+              ipcRenderer.send("newFile", path);
+          })
+          watcher.on('all', (event, path)=>{
+              console.log(`Selected folder has changed event : ${event} , path : ${path}`);
+              fs.readdir(currentSelectedDir,(err, data)=>{
+                  console.log("NEW SELECTED DIR CONETNETN ", data)
+                if(!err){
+                    const returnSelectedArray = addIcon(data).map((val)=>{
+                        const returnObj = {};
+                        for(let v in val){
+                            returnObj['selectedDir'] = currentSelectedDir;
+                            returnObj[v] = val[v];
+                        }
+                        return returnObj;
+                    });
+                    console.log("ACTIONS", actions)
+                    dispatch("updateSelectedDirContent", returnSelectedArray);
+                } else {
+                    console.log("ERROR IN REFRESHING SLECTED DIR CONETNT FROM WATCHER  --  ", err);
+                }
+              })
+
+          })
+        })
+
         commit("UPDATE_SELECTED_DIR", selectedDir)
     },
     updateSelectedDirContent({commit}, selectedArray){
@@ -90,6 +129,10 @@ const actions = {
         }
     },
     updateLoading({commit}, loading){
+        if(watcher){
+            watcher.close();
+            watcher = null;
+        } 
         commit("UPDATE_ISLOADING", loading)
     },
     updateError({commit}, errorMsg){

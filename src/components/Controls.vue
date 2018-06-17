@@ -133,7 +133,7 @@ export default {
         if(currentSelectedDir.length > 3 && passCheck){
             ipcRenderer.send("autoSort", currentSelectedDirContent, activeSubfolders);
         } 
-         console.log("FOLDER ORDER NUMBERs", folderOrderNumbers)
+         
          console.log("Original selected Dir",currentSelectedDirContent );
          console.log("Active sort forlders",activeSubfolders);
      }

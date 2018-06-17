@@ -1,7 +1,8 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, Notification } from 'electron';
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer';
 import { enableLiveReload } from 'electron-compile';
 const fs = require('fs');
+const notifier = require("node-notifier");
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
@@ -72,6 +73,13 @@ const createWindow = async () => {
 ipcMain.on("autoSort", (e,arg,arg2)=>{
   //console.log("RECVD autosort mesage on main her are the args",arg,arg2)
   autoSortDir(e,arg,arg2);
+})
+
+ipcMain.on("newFile", (e, arg)=>{
+  notifier.notify({
+    title:"New File Added",
+    message:arg+" Has been Added to watched folder"
+  })
 })
 
 ipcMain.on("createNewFolder", (e, args)=>{

@@ -48,11 +48,13 @@
     }
   },
   "dependencies": {
+    "chokidar": "^2.0.3",
     "drivelist": "^6.2.2",
     "electron": "^2.0.1",
     "electron-compile": "^6.4.2",
     "electron-devtools-installer": "^2.1.0",
     "electron-squirrel-startup": "^1.0.0",
+    "node-notifier": "^5.2.1",
     "vue": "^2.1.7",
     "vue-resize": "^0.4.4",
     "vue-router": "^3.0.1",
