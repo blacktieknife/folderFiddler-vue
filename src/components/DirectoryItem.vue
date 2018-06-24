@@ -21,15 +21,11 @@ export default {
     methods:{
         showSelectedFile(selectedFile){
             const selectedFilePath = this.directory.selectedDir+'\\'+selectedFile
-            console.log("this.directory.selection dir in directory item component ",this.directory.selectedDir)
-            console.log("selected file name sent in directory item component ",selectedFile);
             fs.stat(selectedFilePath, (err,stats)=>{
                 if(err) return alert("Error check file stats",err);
                 if(!stats.isDirectory()){
-                     console.log(`IS NOT A DIRECTORY!! Here is the File selected`, selectedFile);
                     document.querySelectorAll('.shownFile').forEach((node)=>{
                         if(node.innerText.replace(/\s+/g, "").toLowerCase() == selectedFile.replace(/\s+/g, "").toLowerCase()){
-                            console.log("Matched Element found./", node)
                             node.classList.add('is-active')
                         } else {
                             node.classList.remove('is-active')
@@ -47,17 +43,14 @@ export default {
                         selected = selectedFile.replace(`.${removeExt}`, "").trim();
                     }
                     this.$store.dispatch("updateSelectedFile", selectedFile);
-                } else {
-                  console.log("Selected file is a directory. do Nothing.")  
-                }
+                } 
             });
         },
         newSelectedDir(selectedFile){
             const newPath = this.directory.selectedDir+'\\'+selectedFile;
-            console.log("DOBLUE CLICK VALUE", newPath);
             fs.stat(newPath, (err, stats)=>{
                 if(err){
-                    console.log(err)
+                    console.error(err)
                 } else {
                     if(stats.isDirectory()){
                         fs.readdir(newPath, (err,data)=>{
@@ -67,8 +60,6 @@ export default {
                                 } else {
                                    console.log("SELECTED DIR IS EMPTY!~~~")     
                                 }
-                            } else {
-
                             }
                         })
                     }

@@ -131,11 +131,14 @@ export default {
              }
          }
         if(currentSelectedDir.length > 3 && passCheck){
-            ipcRenderer.send("autoSort", currentSelectedDirContent, activeSubfolders);
+           const confirmCheck = confirm(`Are you sure you want to autosort ${currentSelectedDir}?`, `Confirm autosort`);
+            if(confirmCheck === true) {
+                ipcRenderer.send("autoSort", currentSelectedDirContent, activeSubfolders);
+            } else {
+                console.log("Confrim check was false")
+            }
         } 
          
-         console.log("Original selected Dir",currentSelectedDirContent );
-         console.log("Active sort forlders",activeSubfolders);
      }
  }
 }

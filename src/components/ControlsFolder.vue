@@ -1,9 +1,9 @@
 <template>
     <li style="padding:10px">
         <div class="control is-expanded">
-             <span class="is-pulled-left is-size-7" style="display:block;font-weight:bold;">Suggested Folder Name</span><a class="delete is-pulled-right is-size-7" @click="exitActive"></a>
+             <span class="is-pulled-left is-size-7" style="display:block;letter-spacing:0.6px;font-weight:bold;color:rgba(190,190,190, 0.8)">Suggested Folder Name</span><a class="delete is-pulled-right is-size-7" @click="exitActive"></a>
              <div class="input_wrapper" style="display:block;width:100%;margin-bottom:5px;">
-                 <input :class="['input',computedControlSize, 'has-background-dark',' has-text-light']" :style="{width:'100%',border:'none',borderRadius:'0px',marginTop:'5px', boxShadow:'none', borderBottom:'1px solid #62666c'}" type="text" placeholder="Text input" v-model="folderName">
+                 <input :class="['input',computedControlSize, 'has-text-light']" :style="{width:'100%',border:'none',borderRadius:'0px',marginTop:'5px',backgroundColor:'#484848', boxShadow:'none', borderBottom:'1px solid #62666c'}" type="text" placeholder="Text input" v-model="folderName">
              </div>
         </div>
          <div class="control is-expanded">
@@ -68,7 +68,6 @@ export default {
              window.localStorage.setItem("moveSimilarFilesOption", this.findSimilarFilesCheck);
         },
         selected(val){
-            console.log("I SPY THAT SELECTEDfile HAS CHANGED", val)
             this.folderName = this.parseFolderName(val);
         }
     },
@@ -95,7 +94,6 @@ export default {
             } else {
                 const revesedFileName = name.split("").reverse().join("");
                 const removedExt = revesedFileName.split(".",1).join("").split("").reverse().join("")
-                console.log("Rmv extns!!!!!!",removedExt);
                 return name.replace(`.${removedExt}`, "").replace(/\s{2,}/g, " ").trim();
             }
         },
@@ -106,11 +104,6 @@ export default {
             this.subFolderModal = false;
         },
         createNewFolder(){
-            console.log("The current directory", this.$store.getters.selectedDir)
-            console.log("The currently selected file", this.$store.getters.selectedFile)
-            console.log("The current folder name", this.folderName)
-            console.log("Include file flag", this.moveFileCheck)
-            console.log("Include similar files flag", this.findSimilarFilesCheck);
             const newFolderObj = {
                 dir:this.$store.getters.selectedDir,
                 file:this.$store.getters.selectedFile,
@@ -126,11 +119,9 @@ export default {
         const moveFileOption = window.localStorage.getItem("moveFileOption");
         const moveSimilarFilesOption = window.localStorage.getItem("moveSimilarFilesOption");
         if(moveFileOption !== null){
-            console.log("MOVE FILE OPTION FOUND IN LOCAL STORAGE", moveFileOption, "type", typeof(moveFileOption));
             this.moveFileCheck = (moveFileOption == 'true');  
         } 
         if(moveSimilarFilesOption !== null){
-            console.log("MOVE Similar OPTION FOUND IN LOCAL STORAGE", moveSimilarFilesOption, "type", typeof(moveSimilarFilesOption));
             this.findSimilarFilesCheck = (moveSimilarFilesOption == 'true');
         }
         this.folderName = this.parseFolderName(this.$store.getters.selectedFile);

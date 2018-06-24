@@ -1,5 +1,11 @@
 <template>
-    <div id="loadingModal" :class="['modal',{'is-active':isLoading},]">
+  <transition
+  enter-active-class="animated fadeIn"
+  leave-class="animated fadeOut"
+  leave-active-class="animated fadeOut"
+  duration="200"
+  >
+    <div id="loadingModal" v-if="isLoading" :class="['modal','is-active']">
       <div class="modal-background"></div>
       <div class="modal-content columns">
         <div class="column is-full is-centered">
@@ -11,6 +17,7 @@
         </div>
       </div>
     </div>
+  </transition>
 </template>
 
 <script>
@@ -38,18 +45,14 @@ export default {
  },
  watch:{
    loading(val){
-    //  if(val){
-    //    document.querySelector("#loadingText").innerText(val);
-    //    this.addDots(document.querySelector("#loadingText"));
-    //  } else {
-    //    document.querySelector("#loadingText").innerText("This may take some time or forever if things are broken");
-    //  }
    },
    isLoading(val){
      console.log("isloading Changed!!!!!!!!!!!!", val);
      if(val){
-       document.getElementById("loadingText").innerText = val;
-       this.addDots(document.getElementById("loadingText"));
+       if(document.getElementById("loadingText")){
+          document.getElementById("loadingText").innerText = val;
+          this.addDots(document.getElementById("loadingText"));
+       }
      }
    }
  },

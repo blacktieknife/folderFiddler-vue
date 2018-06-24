@@ -26,9 +26,7 @@ const mutations = {
     state.isLoading = loading;
   },
   "UPDATE_CURRENT_DIR_CONTENT"(state, dirArray){
-    console.log("UPDATE CURRENT DIR MUTATION FIRED ", dirArray);
       state.currentDirConent = dirArray; 
-      console.log("STATE AFTER MUTATION", state.currentDirConent);
   },
   "UPDATE_SELECTED_DIR"(state, selectedPath){
     state.selectedDir = selectedPath;
@@ -38,7 +36,6 @@ const mutations = {
   },
   "UPDATE_FAVORITES"(state, favoritesArray){
       state.favorites = favoritesArray;
-      console.log("STATE AFTER UPDATE FAVORITES", state.favorites)
   },
   "UPDATE_SORT_FOLDER_OPTIONS"(state, options){
       if(isArray(options)){
@@ -47,7 +44,6 @@ const mutations = {
           //should be an object {name:String, isChecked:Boolean}
         state.sortFolderOptions.push(options);
       }
-     console.log("STATE AFTER FOLDER OPTIONS UPDATE", state.sortFolderOptions)
   },
   "UPDATE_ERROR"(state, errorMsg){
     state.errorMsg = errorMsg;
@@ -62,12 +58,11 @@ const mutations = {
       }
   },
   "UPDATE_SELECTED_FILE"(state, selectedFile){
-      if(selectedFile){
+      if(selectedFile && selectedFile.length > 0){
         state.selectedFile = selectedFile;
       } else {
-          state.selectedFile = '';
+          state.selectedFile = "";
       }
-      console.log("UPDATED STATE AFTER UPDATE SELECTED FILE", state.selectedFile);
   }
 };
 let watcher;
@@ -76,27 +71,24 @@ const actions = {
         commit("UPDATE_CURRENT_DIR", dirPath);
     },
     updateCurrentDirContent({commit}, dirArray){
-        console.log("UPDATE CURRENT DIR ACTION FIRED ", dirArray);
         commit("UPDATE_CURRENT_DIR_CONTENT", dirArray);
     },
     updateSelectedDir({commit, getters, dispatch}, selectedDir){
-        console.log("UPDATE SELECTED DIR ACITON FIRED ", selectedDir);
-        const currentSelectedDir = getters.selectedDir || selectedDir;
+        const currentSelectedDir = selectedDir;
         if(watcher){
             watcher.close();
             watcher = null;
         } 
         watcher = chokidar.watch(selectedDir,{ignored: /(^|[\/\\])\../, depth:0});
         watcher.on('ready',()=>{
-          console.log(`Scan complete ready for changes`);
+          console.log(`Watcher -- Scan complete ready for changes`);
           watcher.on('add', (path)=>{
-              console.log(`New file added here is the full path ${path}`);
+              console.log(`Watcher -- New file added here is the full path ${path}`);
               ipcRenderer.send("newFile", path);
           })
           watcher.on('all', (event, path)=>{
               console.log(`Selected folder has changed event : ${event} , path : ${path}`);
               fs.readdir(currentSelectedDir,(err, data)=>{
-                  console.log("NEW SELECTED DIR CONETNETN ", data)
                 if(!err){
                     const returnSelectedArray = addIcon(data).map((val)=>{
                         const returnObj = {};
@@ -106,16 +98,14 @@ const actions = {
                         }
                         return returnObj;
                     });
-                    console.log("ACTIONS", actions)
                     dispatch("updateSelectedDirContent", returnSelectedArray);
                 } else {
-                    console.log("ERROR IN REFRESHING SLECTED DIR CONETNT FROM WATCHER  --  ", err);
+                    console.error("ERROR IN REFRESHING SLECTED DIR CONETNT FROM WATCHER  --  ", err);
                 }
               })
 
           })
         })
-
         commit("UPDATE_SELECTED_DIR", selectedDir)
     },
     updateSelectedDirContent({commit}, selectedArray){
@@ -154,7 +144,7 @@ const actions = {
                 commit("UPDATE_SORT_FOLDER_OPTIONS", sortDefaults)
             }
         } catch(err){
-            console.log(err);
+            console.error(err);
         }
     },
     updateSortCheck({commit, getters}, folder){
@@ -175,7 +165,6 @@ const actions = {
     addSortFolder({commit, getters}, newFolder){
         const folder = typeof(newFolder) === 'string' && newFolder.trim().length > 0 ? newFolder.trim() : false;
         if(folder){
-            console.log("Folder made it though to addSortFolder,",folder);
             commit("UPDATE_SORT_FOLDER_OPTIONS", {name:folder, isChecked:false});
         } else {
             console.error("ERROR: Missing FOLDER NAME in Add sortFolder function")
@@ -191,8 +180,6 @@ const actions = {
                     returnArr.push(autoSortArr[i]);
                 }
             }
-            console.log("Folder made it though to remove,",folder);
-            console.log("New sort array",returnArr);
             commit("UPDATE_SORT_FOLDER_OPTIONS", returnArr);
         } else {
             console.error("ERROR: Missing FOLDER NAME in Remove sortFolder function")
@@ -214,11 +201,10 @@ const actions = {
                 commit("UPDATE_CREATE_FOLDER_OPTIONS", createDefaults)
             }
         } catch(err){
-            console.log(err);
+            console.error(err);
         }  
     },
     addCreateFolder({commit}, newFolder){
-        console.log("ADD CREATE FOLDER VALUE ",newFolder );
         const folder = typeof(newFolder) === "string" && newFolder.trim().length > 0 ? newFolder.trim() : false;
         if(folder){
             commit("UPDATE_CREATE_FOLDER_OPTIONS", {name:folder, isChecked:false})
@@ -260,10 +246,9 @@ const actions = {
         const favs = window.localStorage.getItem('favorites');
         if(favs){
             const favoritesArray = JSON.parse(favs);
-            console.log("IS array",favoritesArray instanceof Array)
             commit("UPDATE_FAVORITES", favoritesArray);
         } else {
-            console.log("NO FAVS");
+            console.error("NO FAVS Found in localstorage");
         }
     },
     updateFavorites({commit}, newFavoriteArray){

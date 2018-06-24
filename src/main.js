@@ -1,8 +1,17 @@
-import { app, BrowserWindow, ipcMain, Notification } from 'electron';
-import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer';
+import { app, BrowserWindow, ipcMain } from 'electron';
+
 import { enableLiveReload } from 'electron-compile';
 const fs = require('fs');
 const notifier = require("node-notifier");
+
+//setupMaxlistenter through node process
+
+//process.setMaxListeners(20);
+
+//setup detailed node debug of warnings
+
+process.on('warning', e=>console.warn(e.stack));
+
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
@@ -71,7 +80,6 @@ const createWindow = async () => {
 };
 
 ipcMain.on("autoSort", (e,arg,arg2)=>{
-  //console.log("RECVD autosort mesage on main her are the args",arg,arg2)
   autoSortDir(e,arg,arg2);
 })
 
@@ -97,9 +105,11 @@ ipcMain.on("createNewFolder", (e, args)=>{
           e.sender.send("updateLoading", "Creating Sub Folders");
           const promisesArray = subFolders.map(val=>{
             return new Promise((resolve, reject)=>{
-              fs.mkdir(`${args.dir}\\${args.folderName}\\${val.name}`, (err)=>{
-                if(!err) resolve(`${args.dir}\\${args.folderName}\\${val.name}`);
-              })
+              setTimeout(()=>{
+                fs.mkdir(`${args.dir}\\${args.folderName}\\${val.name}`, (err)=>{
+                  if(!err) resolve(`${args.dir}\\${args.folderName}\\${val.name}`);
+                })
+              }, 500)
             })
           })
             Promise.all(promisesArray).then(vals=>{
@@ -109,17 +119,13 @@ ipcMain.on("createNewFolder", (e, args)=>{
               fs.readdir(`${args.dir}`, (err,data)=>{
                 if(!err){
                   data.forEach((dirName)=>{
-                    console.log("ARGS", args)
                     const match = dirName.match(/^\d{3,}/);
                     if(match){
-                      console.log("MATCH FOUD",match[0])
-                      console.log("FULL MATCH VS", match[0], args.file.match(/^\d{3,}/)[0])
                       if(match[0] == args.file.match(/^\d{3,}/)[0]){
                         tempCopyArray.push(dirName);
                       }
                     }
                   })
-                  console.log("ALL COPY ARRAY", tempCopyArray);
                   const copyArray = tempCopyArray.map(val=>{
                     return {read:`${args.dir}\\${val}`, write:`${args.dir}\\${args.folderName}\\${val}`}
                   })
@@ -129,8 +135,9 @@ ipcMain.on("createNewFolder", (e, args)=>{
                     const batchRemoveArray = batchRemove(removeVal);
                     return Promise.all(batchRemoveArray)   
                   }).then(()=>{
-                    console.log("ALL DONE NOW>");
-                    return e.sender.send("updateLoading", false);
+                    setTimeout(()=>{
+                      return e.sender.send("updateLoading", false);
+                    }, 2000)
                   }).catch(err=>{
                     console.error("Err in copy array", err)
                   })  
@@ -145,17 +152,13 @@ ipcMain.on("createNewFolder", (e, args)=>{
             fs.readdir(`${args.dir}`, (err,data)=>{
               if(!err){
                 data.forEach((dirName)=>{
-                  console.log("ARGS", args)
                   const match = dirName.match(/^\d{3,}/);
                   if(match){
-                    console.log("MATCH FOUD",match[0])
-                    console.log("FULL MATCH VS", match[0], args.file.match(/^\d{3,}/)[0])
                     if(match[0] == args.file.match(/^\d{3,}/)[0]){
                       tempCopyArray.push(dirName);
                     }
                   }
                 })
-                console.log("ALL COPY ARRAY", tempCopyArray);
                 const copyArray = tempCopyArray.map(val=>{
                   return {read:`${args.dir}\\${val}`, write:`${args.dir}\\${args.folderName}\\${val}`}
                 })
@@ -165,8 +168,9 @@ ipcMain.on("createNewFolder", (e, args)=>{
                   const batchRemoveArray = batchRemove(removeVal);
                   return Promise.all(batchRemoveArray)   
                 }).then(()=>{
-                  console.log("ALL DONE NOW>");
-                  return e.sender.send("updateLoading", false);
+                  setTimeout(()=>{
+                    return e.sender.send("updateLoading", false);
+                  }, 2000)
                 }).catch(err=>{
                   console.error("Err in copy array", err)
                 })  
@@ -210,13 +214,15 @@ ipcMain.on("createNewFolder", (e, args)=>{
             const write = fs.createWriteStream(writeLoc);
             read.pipe(write);
             write.on('error', (err)=>{
-              console.log("ERROR IN READ WRTIE PIPE IN MOVE FILE PORTION OF CREATE NEW FOLDER", err);
+              console.error("ERROR IN READ WRTIE PIPE IN MOVE FILE PORTION OF CREATE NEW FOLDER", err);
             })
             write.on("finish", ()=>{
               e.sender.send("updateLoading", "Cleaing Old Files");
               fs.unlink(readLoc, (err)=>{
                 if(!err){
-                  e.sender.send("updateLoading", false);
+                  setTimeout(()=>{
+                    e.sender.send("updateLoading", false);  
+                  }, 2000)
                 } else {
                   console.error(err)
                 }
@@ -224,7 +230,7 @@ ipcMain.on("createNewFolder", (e, args)=>{
             })
           }).catch(err=>{
             e.sender.send("errorMsg", "Folder already exists");
-            console.log("Subfolder Err", err)
+            console.error("Subfolder Err", err)
           })
         } else {
           e.sender.send("updateLoading", "Copying File");
@@ -234,13 +240,15 @@ ipcMain.on("createNewFolder", (e, args)=>{
           const write = fs.createWriteStream(writeLoc);
           read.pipe(write);
           write.on('error', (err)=>{
-            console.log("ERROR IN READ WRTIE PIPE IN MOVE FILE PORTION OF CREATE NEW FOLDER", err);
+            console.error("ERROR IN READ WRTIE PIPE IN MOVE FILE PORTION OF CREATE NEW FOLDER", err);
           })
           write.on("finish", ()=>{
             e.sender.send("updateLoading", "Cleaing Old Files");
             fs.unlink(readLoc, (err)=>{
               if(!err){
-                e.sender.send("updateLoading", false);
+                setTimeout(() => {
+                  e.sender.send("updateLoading", false);  
+                }, 2000);
               } else {
                 console.error(err)
               }
@@ -249,7 +257,7 @@ ipcMain.on("createNewFolder", (e, args)=>{
         }
       } else {
         e.sender.send("errorMsg", "Folder already exists");
-        console.log(err)
+        console.error(err)
       }
     })
   } else {
@@ -268,7 +276,9 @@ ipcMain.on("createNewFolder", (e, args)=>{
               fs.mkdir(`${args.dir}\\${args.folderName}\\${folder.name}`, (err)=>{
                 if(!err){
                   if(subFolders.length-1 == i){
-                    e.sender.send("updateLoading", false);
+                    setTimeout(() => {
+                      e.sender.send("updateLoading", false);
+                    }, 2000);
                   }
                 } else {
                   console.error("Err in subfolder creation", err)
@@ -280,7 +290,6 @@ ipcMain.on("createNewFolder", (e, args)=>{
           }
            
       } else {
-        console.log("Sub folders !! NOO!! length",args.subFolders)
         e.sender.send("updateLoading", false);
       }
       } else {
@@ -335,7 +344,6 @@ async function autoSortDir(e,dirContent, subFolders){
          const orderType = match[4] && typeof(match[4]) === 'string' && match[4].length > 0 ? match[4] : false;
          const fileExtension = match[6] && typeof(match[6]) === 'string' && match[6].length > 0 ? match[6] : false;
          const dollarAmount = match[5] && typeof(match[5]) === 'string' && match[5].length > 0 ? match[5] : '$0';
-         //console.log(orderNum,jobName,orderType,fileExtension,dollarAmount);
          if(orderNum && orderType.toLowerCase() === "so" && jobName && fileExtension){
            seen[orderNum] = {
              fullFileName: match[0].trim(),
@@ -365,12 +373,10 @@ async function autoSortDir(e,dirContent, subFolders){
          }
        }
      })
-     console.log("SEEN ARRAY", seen)
      const copyArray = [];
      const newFolderArray = [];
      for(let folder in seen){
        const path = `${dirContent[0].selectedDir}\\${seen[folder].jobName+' '+seen[folder].dollarAmount+' '+folder}`;
-       console.log("THE PATH",path)
         newFolderArray.push(path);
         dirContent.forEach((item)=>{
           const getOrderNum = /^\d{4,}/;
@@ -405,7 +411,6 @@ async function autoSortDir(e,dirContent, subFolders){
       }
       e.sender.send("updateLoading", "Creating Folders");
       const newDirsArray = makeDirectories(newFolderArray, subFolders);
-      console.log("Dir array returned!",newDirsArray)
       Promise.all(newDirsArray).then((createdArr)=>{
         e.sender.send("updateLoading", "Copying Files");
         const copyPromises = batchCopy(copyArray);
@@ -415,7 +420,6 @@ async function autoSortDir(e,dirContent, subFolders){
         const removePromises = batchRemove(copiedFiles);
         return Promise.all(removePromises)
       }).then(final=>{
-        console.log("ALL DONE");
         e.sender.send("updateLoading", false);
       }).catch(err=>{
         e.sender.send("updateLoading", false);
@@ -455,7 +459,7 @@ function batchRemove(arr){
             }
           })
         } catch(err){
-          console.log("err caught in batch remove", err)
+          console.error("err caught in batch remove", err)
         }
 
   })

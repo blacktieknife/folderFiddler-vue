@@ -19,20 +19,6 @@ export default {
             isError:false
         }
     },
-    computed:{
-        errorMsg(){
-            ipcRenderer.on("errorMsg", (e,args)=>{
-                console.log("RECIEVD UPDATED ERROR MESSGE!!!!!!!!!!!!!!!!!", args)
-                this.isError = args;
-            })
-        }
-    },
-    watch:{
-        isError(val){
-            console.log("ERROR UPDATED!!!!!!!!!!!!", val)
-           this.$store.dispatch('updateError', val);
-        }
-    }
 }
 </script>
 

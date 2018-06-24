@@ -1,6 +1,6 @@
 {
   "name": "folder-fiddler-vue",
-  "productName": "LJI-folder-wizard",
+  "productName": "LJI-Folder-Wizard",
   "version": "2.0.0",
   "description": "",
   "main": "src/main.js",
@@ -58,7 +58,8 @@
     "vue": "^2.1.7",
     "vue-resize": "^0.4.4",
     "vue-router": "^3.0.1",
-    "vuex": "^3.0.1"
+    "vuex": "^3.0.1",
+    "windows-network-drive": "^2.1.1"
   },
   "devDependencies": {
     "babel-plugin-transform-async-to-generator": "^6.24.1",

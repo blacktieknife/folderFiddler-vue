@@ -99,7 +99,7 @@ export default {
             }
             fs.readdir(selectedDir,(err,data)=>{
                 if(err) {
-                    console.log(err)
+                    console.error(err)
                 } else {
                     if(data.length > 0){
                         const returnSelectedArray = addIcon(data).map((val)=>{
@@ -121,7 +121,7 @@ export default {
         refreshSelectedDir(){
             fs.readdir(this.selectedDir, (err,data)=>{
                 if(err){
-                    console.log("ERR IN REFERSH FUNCTION", err)
+                    console.error("ERR IN REFERSH FUNCTION", err)
                 } else {
                     clearActive();
                     this.$store.dispatch("updateSelectedFile");

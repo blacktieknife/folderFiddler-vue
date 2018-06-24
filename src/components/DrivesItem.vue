@@ -38,7 +38,7 @@ export default {
                 if(!err && stats.isDirectory()){
                     this.$store.dispatch('updateCurrentDir', dir)
                 } else {
-                    if(err)console.log(err.message);
+                    if(err) console.error(err.message);
                 }
             })
         },
@@ -55,7 +55,6 @@ export default {
                     dir=this.currentDir+'\\'+selectedDir;
                 }
                 fs.stat(dir, (err, stats)=>{
-                    console.log("Dir STATS ", stats)
                     if(!err && stats.isDirectory()){
                         fs.readdir(dir,(err,data)=>{
                             if(err){
@@ -82,7 +81,7 @@ export default {
                        
                         
                     } else {
-                        if(err)console.log(err.message);
+                        if(err) console.error(err.message);
                     }
                 })  
             } else {

@@ -56,9 +56,13 @@
         </p> -->
         <div v-if="this.currentDirContent.length > 0" id="dir-items" :style="{height:navPanelHeight, overflowX:'auto',}">
              <div v-if="currentDir =='Drives'" style="padding:5px;font-size:13px;">Drives</div>
+   
         <app-drives-item v-for="dir in this.currentDirContent" :key="dir.dir" :driveLetter="dir.dir" :icon="dir.icon"></app-drives-item>
+     
         <div v-if="currentDir =='Drives' && favorites.length > 0" style="padding:5px;border-top:1px solid #484848;font-size:13px;">Favorites</div>
+       
         <app-favorites-item v-if="currentDir =='Drives'" v-for="dir in this.favorites" :key="dir" :driveLetter="dir"></app-favorites-item>
+  
         </div>
         <div v-else>
             <a class="panel-block has-text-light" v-if="this.currentDir == 'Drives'">
@@ -80,11 +84,13 @@
 <script>
 const drivelist = require('drivelist');
 const fs = require('fs');
+const networkedDrives = require('windows-network-drive');
 import addIcon from '../helpers/addIcon.js';
 import clearActive from '../helpers/clearActiveClass.js';
 import driveItem from './DrivesItem';
 import favoritesItem from './FavoritesItem';
 import { mapState } from 'vuex'
+
 
 export default {
     data(){
@@ -135,7 +141,6 @@ export default {
                 } else {
                     const dirArr = this.currentDir.split('\\')
                     let returnStr = '';
-                    console.log("Dir arr ", dirArr);
                         dirArr.splice(-1, 1);
                     if(dirArr.length > 1){
                         returnStr = dirArr.join("\\");
@@ -152,7 +157,6 @@ export default {
         fetchDir(dir){
             if(dir && typeof(dir) === "string" && dir.length > 0){
                 clearActive();
-                console.log("FETCH DIR VALUE", dir)
                 fs.readdir(`${dir}`, (err, data)=>{
                     if(err){
                         if(err.message.includes("not a directory")){
@@ -170,7 +174,6 @@ export default {
             }
         },
         fetchDrives(){
-            console.log("Fetch drives function Fired!")
             clearActive();
             drivelist.list((error, drives) => {
                 if (error) {
@@ -178,9 +181,15 @@ export default {
                 }
                 const currentDirContentArr = [];
                 drives.forEach((drive) => {
-                    console.log("Drives", drive)
                     currentDirContentArr.push({dir:drive.mountpoints[0].path, icon:'fas fa-hdd'});
                 });
+                networkedDrives.list().then((drives)=>{
+                    for(let drive in drives){
+                        currentDirContentArr.push({dir:drive+":\\", icon:'fas fa-hdd'}); 
+                    }
+                }).catch((err)=>{
+                    console.error("error in fetching networked drives ", err);
+                })
                 this.$store.dispatch('updateCurrentDir', 'Drives');
                 this.$store.dispatch('updateCurrentDirContent',currentDirContentArr);
             });
@@ -206,7 +215,7 @@ export default {
                 this.favorites.splice(spliceIndex, 1);
                 this.$store.dispatch('removeFavorite', this.favorites);
              } else {
-                 console.log("MISSING INDEX",this.favorites.indexOf(this.selectedDir), "this.selectedDir", this.selectedDir);
+                 console.error("MISSING INDEX",this.favorites.indexOf(this.selectedDir), "this.selectedDir", this.selectedDir);
              }
         }
     },

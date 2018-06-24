@@ -35,7 +35,6 @@ export default {
                                             val.style.border = 'none';
                                         }
                                     });
-            console.log("FAVORTIE LOCATION",location)
             this.$store.dispatch('updateSelectedDir', location);
         }
     }
